@@ -8,7 +8,7 @@ public class GameLogic implements PlayableLogic {
     private ConcretePlayer _player1, _player2;
     private boolean _isKingSaved = false;
     private boolean _isKingCaptured = false;
-    private Position _kingPosition;
+    private Position _kingsPosition;
     private boolean _isSecondPlayerTurn;
     public GameLogic() {
         _player1 = new ConcretePlayer(true);
@@ -77,18 +77,18 @@ public class GameLogic implements PlayableLogic {
         }
         // If King -> Update Position
         else {
-            _kingPosition = new Position(b.get_x(), b.get_y());
+            _kingsPosition = new Position(b.get_x(), b.get_y());
         }
 
         // Check if Game is finished -> print Statistics
-        if (_kingPosition.isCorner(getBoardSize())) {
+        if (_kingsPosition.isCorner(getBoardSize())) {
             _isKingSaved = true;
             _player1.addWin();
             printStatistics(_player1);
         }
 
-        King king = (King) getPieceAtPosition(_kingPosition);
-        if (captureKing(king, _kingPosition)) {
+        King king = (King) getPieceAtPosition(_kingsPosition);
+        if (captureKing(king, _kingsPosition)) {
             _isKingCaptured = true;
             _player2.addWin();
             printStatistics(_player2);
@@ -228,7 +228,7 @@ public class GameLogic implements PlayableLogic {
         _allPieces.add(5, _board[4][5]);
         _board[5][5] = new King(_player1);
         _allPieces.add(6, _board[5][5]);
-        _kingPosition = new Position(5,5);
+        _kingsPosition = new Position(5,5);
         _board[6][5] = new Pawn(_player1);
         _allPieces.add(7, _board[6][5]);
         _board[7][5] = new Pawn(_player1);
