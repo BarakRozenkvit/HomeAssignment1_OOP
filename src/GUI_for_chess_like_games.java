@@ -7,13 +7,13 @@ import java.awt.*;
  */
 public class GUI_for_chess_like_games extends JFrame {
     private static final int BUTTON_SIZE = 55;
-    private static final int FONT_SIZE = 18;
+    private static final int FONT_SIZE = 20;
     private final JButton[][] buttons;
     private final int BOARD_SIZE;
     private JButton selectedButton = null; // To keep track of the currently selected button
     private Color selectedColor = null;
     private final PlayableLogic gameLogic;
-    private final JLabel turnLabel = new JLabel("Player 2's Turn (Red)");
+    private final JLabel turnLabel = new JLabel("Player 2's Turn");
     private final JLabel playerTowWinsLabel = new JLabel("♟ Player 2 Wins: 0");
     private final JLabel playerOneWinsLabel = new JLabel("♙ Player 1 Wins: 0");
     private final JPanel mainPanel = new JPanel(new BorderLayout());
@@ -93,9 +93,9 @@ public class GUI_for_chess_like_games extends JFrame {
     private void updateBoard() {
         // Update the turn label based on the attacker's turn
         if (gameLogic.isSecondPlayerTurn()) {
-            turnLabel.setText("Player 2's Turn (Red)");
+            turnLabel.setText("Player 2's Turn");
         } else {
-            turnLabel.setText("Player 1's Turn (Blue)");
+            turnLabel.setText("Player 1's Turn");
         }
 
         for (int row = 0; row < BOARD_SIZE; row++) {
@@ -213,7 +213,7 @@ public class GUI_for_chess_like_games extends JFrame {
 
         // Reset UI elements
         updateBoard();
-        turnLabel.setText("Player 2's Turn (Red)");
+        turnLabel.setText("Player 2's Turn");
 
         // Reset selectedButton and selectedColor
         if (selectedButton != null) {
