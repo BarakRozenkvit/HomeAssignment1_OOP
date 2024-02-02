@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Statistics {
     static class PieceStatistics {
-        // Store all Statistics
+        // Store a single Piece Statistics and comperators
         private Stack<Position> positionHistory;
         private int _kills;
         private int _dist;
@@ -27,6 +27,10 @@ public class Statistics {
         public Stack<Position> getPositionHistory() {
             return positionHistory;
         }
+        /**
+         * create a set from my position history
+         * @return List of positions
+         */
         public List<Position> getPositionHistorySet(){
             List<Position> positionsSet = new ArrayList<Position>();
             for(int i = 0;i<positionHistory.size();i++) {
@@ -109,6 +113,7 @@ public class Statistics {
         }
     }
     static class PositionStatistics {
+        // Store a Position statistics and comperators
         private int _counter = 0;
         public PositionStatistics() {}
         public int getCounter() {

@@ -4,6 +4,7 @@ import java.util.Stack;
 
 public abstract class ConcretePiece implements Piece,Comparable<ConcretePiece> {
     private String _name;
+    // Class of statistics is instantiated when creating Pawn or King
     private Statistics.PieceStatistics statistics = new Statistics.PieceStatistics();
     public ConcretePiece() {}
     @Override

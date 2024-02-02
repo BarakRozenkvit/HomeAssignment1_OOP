@@ -63,7 +63,7 @@ public class GameLogic implements PlayableLogic {
         //Add Statistics: New Position and distance
         movingPiece.getPieceStatistics().addDist((b.distanceTo(a)));
         movingPiece.getPieceStatistics().getPositionHistory().push(b);
-        //_mapPositions[b.get_x()][b.get_y()].getPositionStatistics().addCounter();
+
         // Switch play of turns
         if (movingPiece.getOwner().isPlayerOne()) {
             _isSecondPlayerTurn = true;
@@ -71,17 +71,20 @@ public class GameLogic implements PlayableLogic {
             _isSecondPlayerTurn = false;
         }
 
-        // If Pawns -> Capture Enemy , If King and its corner -> King is saved
+        // If Pawns -> Check if Capture Enemy
         if (movingPiece instanceof Pawn){
             capturePawn((Pawn) movingPiece,b);
         }
+        // If King -> Update Position
         else {
             _kingPosition = new Position(b.get_x(), b.get_y());
-            if (_kingPosition.isCorner(getBoardSize())) {
-                _isKingSaved = true;
-                _player1.addWin();
-                printStatistics(_player1);
-            }
+        }
+
+        // Check if Game is finished -> print Statistics
+        if (_kingPosition.isCorner(getBoardSize())) {
+            _isKingSaved = true;
+            _player1.addWin();
+            printStatistics(_player1);
         }
 
         King king = (King) getPieceAtPosition(_kingPosition);
@@ -92,8 +95,21 @@ public class GameLogic implements PlayableLogic {
         }
         return true;
     }
+    /**
+     * Function gets a piece on board and its Position and check if it captures and kills enemy
+     * @param piece - Current Piece
+     * @param p - Piece Position
+     */
     public void capturePawn(Pawn piece,Position p){
         // Map pieces around the piece
+        //                ?
+        //
+        //                ?
+        //      ?   ?   piece   ?   ?
+        //                ?
+        //
+        //                ?
+        //
         Position[] positionsArr = {
                 p.getUpperPos(),p.getUpperPos().getUpperPos(),
                 p.getLowerPos(),p.getLowerPos().getLowerPos(),
@@ -101,26 +117,26 @@ public class GameLogic implements PlayableLogic {
                 p.getRightPos(),p.getRightPos().getRightPos()};
 
         for(int i=0;i<positionsArr.length;i=i+2){
-
+            // Get Pieces at positions
             ConcretePiece checkPiece = (ConcretePiece) getPieceAtPosition(positionsArr[i]);
             ConcretePiece checkNextPiece = (ConcretePiece) getPieceAtPosition(positionsArr[i+1]);
-
+            // if empty spot or the piece is king or next to it is king Continue
             if(checkPiece == null || checkPiece instanceof King || checkNextPiece instanceof King){
                 continue;
             }
-
+            // If piece next to me is enemy and next to him is corner, Kill and remove enemy from board
             if(!checkPiece.isSameOwner(piece)
                     && positionsArr[i+1].isCorner(getBoardSize())){
                 _board[positionsArr[i].get_x()][positionsArr[i].get_y()] = null;
                 piece.getPieceStatistics().addKill();
             }
-
+            // If piece next me is enemy and next to him is Outsize of the board, kill and remove enemy from board
             else if(!checkPiece.isSameOwner(piece)
-                    && positionsArr[i+1].isOnEdgeOfBoard(getBoardSize())){
+                    && positionsArr[i+1].isOutsizeEdgeOfBoard(getBoardSize())){
                 _board[positionsArr[i].get_x()][positionsArr[i].get_y()] = null;
                 piece.getPieceStatistics().addKill();
             }
-
+            // If piece next to me is enemy and next to him is my friend kill him and remove enemy from board
             else if(!checkPiece.isSameOwner(piece)
                     && checkNextPiece != null
                     && checkNextPiece.isSameOwner(piece)){
@@ -130,7 +146,18 @@ public class GameLogic implements PlayableLogic {
         }
 
     }
+    /**
+     * Function get the king piece and its position and check if enemy has captured it
+     * @param king
+     * @param p - King's Position
+     * @return true if king is captured or false
+     */
     public boolean captureKing(King king,Position p){
+        // Map pieces around the piece
+        //                ?
+        //          ?   piece   ?
+        //                ?
+        //
         Position[] positionsArr = {
                 p.getUpperPos(), p.getLowerPos(),
                 p.getLeftPos(), p.getRightPos()};
@@ -138,10 +165,11 @@ public class GameLogic implements PlayableLogic {
         for(int i=0;i<positionsArr.length;i++){
 
             ConcretePiece checkPiece = (ConcretePiece) getPieceAtPosition(positionsArr[i]);
-
-            if(checkPiece == null && !positionsArr[i].isOnEdgeOfBoard(getBoardSize())){
+            // if the is no piece at one spot and not one spot is not outside the board return false
+            if(checkPiece == null && !positionsArr[i].isOutsizeEdgeOfBoard(getBoardSize())){
                 return false;
             }
+            // if there is one piece that is my friend return false
             if(checkPiece != null && checkPiece.isSameOwner(king)){return false;}
         }
 
@@ -151,7 +179,7 @@ public class GameLogic implements PlayableLogic {
     public Piece getPieceAtPosition(Position position) {
         // If Piece outsize of bounds return null
         int boardSize = getBoardSize();
-        if(position.isOutsizeOfBoard(boardSize) || position.isOnEdgeOfBoard(boardSize)) {
+        if(position.isOutsizeOfBoard(boardSize) || position.isOutsizeEdgeOfBoard(boardSize)) {
             return null;
         }
         return _board[position.get_x()][position.get_y()];
@@ -173,15 +201,19 @@ public class GameLogic implements PlayableLogic {
     }
     @Override
     public void reset() {
+        // Create new board matrix
         _board = new ConcretePiece[getBoardSize()][getBoardSize()];
+        // Create map of Positions to save all the Positions Pointers
         _mapPositions = new Position[getBoardSize()][getBoardSize()];
+        // Create List to save all Pieces Pointers
         _allPieces = new ArrayList<ConcretePiece>(13 + 24);
+        // Declare list of positions that will hold all positions that more than one pieces stepped on
         _allPositions = new ArrayList<>();
         _isSecondPlayerTurn = true;
         _isKingSaved = false;
         _isKingCaptured = false;
 
-
+        // Create board and add to list of all pieces
         _board[5][3] = new Pawn(_player1);
         _allPieces.add(0, _board[5][3]);
         _board[4][4] = new Pawn(_player1);
@@ -259,6 +291,7 @@ public class GameLogic implements PlayableLogic {
         _board[7][10] = new Pawn(_player2);
         _allPieces.add(36, _board[7][10]);
 
+        // Set names to pieces for statistics
         for(int i=0;i<13;i++){
             if(i==6){_allPieces.get(i).setName("K" + (i+1));}
             else {_allPieces.get(i).setName("D" + (i + 1));}
@@ -270,54 +303,65 @@ public class GameLogic implements PlayableLogic {
         int m=0;
         for(int i=0;i<_board.length;i++){
             for (int j=0;j<_board[i].length;j++){
+                // add all positions to map
                 _mapPositions[i][j] = new Position(i,j);
                 if(_board[i][j] != null){
-                    //_mapPositions[i][j].getPositionStatistics().addCounter();
+                    // add to position history of each piece his starting position
                     _board[i][j].getPieceStatistics().getPositionHistory().push(new Position(i,j));
                 }
             }
         }
     }
     @Override
-    public void undoLastMove() {
-
-        return;
-    }
+    public void undoLastMove() {// Not Implemented
+        return;}
     @Override
     public int getBoardSize() {
         return 11;
     }
+    /**
+     * Function gets a winner and prints the right order of statistics of the game according to the winner
+     * @param winner
+     */
     public void printStatistics(Player winner){
+        // Sort the pieces by comperator
         Collections.sort(_allPieces,new Statistics.PieceStatistics.PositionHistoryComp(winner));
         for (ConcretePiece piece : _allPieces) {
-            if(piece.getPieceStatistics().getPositionHistory().size() > 1) {
-                System.out.println(piece.getName() + ": " + piece.getPieceStatistics().getPositionHistory().toString());
+            Stack<Position> piecePositionHistory = piece.getPieceStatistics().getPositionHistory();
+            // if PositionHistory size is smaller the 2 don't print
+            if(piecePositionHistory.size() > 1) {
+                System.out.println(piece.getName() + ": " + piecePositionHistory);
+                // Get a set of all positions piece has stepped on
                 List<Position> positionsSet = piece.getPieceStatistics().getPositionHistorySet();
+                // for each position add to counter
                 for(int i=0 ;i<positionsSet.size();i++){
                     Position current = positionsSet.get(i);
                     _mapPositions[current.get_x()][current.get_y()].getPositionStatistics().addCounter();
                 }
             }
             else {
-                Position singlePos = piece.getPieceStatistics().getPositionHistory().get(0);
+                // if not moved add to counter also
+                Position singlePos = piecePositionHistory.get(0);
                 _mapPositions[singlePos.get_x()][singlePos.get_y()].getPositionStatistics().addCounter();
             }
 
         }
 
         System.out.println(("***************************************************************************"));
-
+        // Sort all Pieces list by Kill comperator
         Collections.sort(_allPieces,new Statistics.PieceStatistics.KillsComp(winner).reversed());
         for (ConcretePiece piece : _allPieces) {
+            // print if number of kills is gearter then 0
             if(piece.getPieceStatistics().getKills()>0) {
                 System.out.println(piece.getName() + ": " + piece.getPieceStatistics().getKills() + " kills");
             }
         }
 
         System.out.println(("***************************************************************************"));
-
+        // Sort all Pieces list by Distance comperator
         Collections.sort(_allPieces, new Statistics.PieceStatistics.DistComp(winner).reversed());
         for (ConcretePiece piece : _allPieces) {
+            // print if piece moved
             if(piece.getPieceStatistics().getDist() > 0) {
                 System.out.println(piece.getName() + ": " + piece.getPieceStatistics().getDist() + " squares");
             }
@@ -327,11 +371,13 @@ public class GameLogic implements PlayableLogic {
 
         for(int i=0;i<_mapPositions.length;i++){
             for(int j=0;j<_mapPositions[i].length;j++){
+                // Add position from map positions to all positions if more then 1 piece stepped on position
                 if(_mapPositions[i][j].getPositionStatistics().getCounter()>1){
                     _allPositions.add(_mapPositions[i][j]);
                 }
             }
         }
+        // Sort all Positions list by number of pieces stepped comperator
         Collections.sort(_allPositions,new Statistics.PositionStatistics.PositionComp());
         for (Position pos : _allPositions) {
             System.out.println(pos.toString() + pos.getPositionStatistics().getCounter() + " pieces");
